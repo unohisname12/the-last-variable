@@ -4,6 +4,7 @@ import {
   Activity,
   AlertTriangle,
   ArrowRight,
+  BookOpen,
   Crosshair,
   DoorOpen,
   Flame,
@@ -97,6 +98,7 @@ function App() {
   const [game, setGame] = useState(() => freshGame(config));
   const [challenge, setChallenge] = useState(null);
   const [answer, setAnswer] = useState("");
+  const [showGuide, setShowGuide] = useState(false);
 
   const activePlayer = game.players[game.active];
   const activeCard = getCard(activePlayer);
@@ -283,7 +285,7 @@ function App() {
   return (
     <main>
       {screen === "setup" ? (
-        <Setup config={config} setConfig={setConfig} start={start} />
+        <Setup config={config} setConfig={setConfig} start={start} openGuide={() => setShowGuide(true)} />
       ) : (
         <>
           <header className="topbar">
@@ -294,6 +296,7 @@ function App() {
             <div className="statusStrip">
               <span>Round {Math.min(game.round, maxRounds)} / {maxRounds}</span>
               <span>{winner || `${activePlayer.name}'s turn`}</span>
+              <button className="iconButton" onClick={() => setShowGuide(true)} title="How to play"><BookOpen size={18} /></button>
               <button className="iconButton" onClick={start} title="Restart"><RotateCcw size={18} /></button>
             </div>
           </header>
@@ -337,17 +340,20 @@ function App() {
           )}
         </>
       )}
+      {showGuide && <GuideModal close={() => setShowGuide(false)} />}
     </main>
   );
 }
 
-function Setup({ config, setConfig, start }) {
+function Setup({ config, setConfig, start, openGuide }) {
+  const [lastPicked, setLastPicked] = useState({ role: "breaker", id: "engineer" });
   function toggleBreaker(id) {
     const ids = config.breakerIds.includes(id)
       ? config.breakerIds.filter((item) => item !== id)
       : [...config.breakerIds, id].slice(0, 4);
     if (ids.length >= 3) {
       setConfig({ ...config, breakerIds: ids, tiers: { ...config.tiers, [id]: config.tiers[id] || 2 } });
+      setLastPicked({ role: "breaker", id });
     }
   }
   function setTier(id, tier) {
@@ -362,6 +368,7 @@ function Setup({ config, setConfig, start }) {
         <p className="eyebrow">Middle-school math escape game</p>
         <h1>The Last Variable</h1>
         <p>Pick 3-4 Circuit Breakers and one Glitch. Every power is fueled by differentiated math.</p>
+        <SelectedLineup config={config} lastPicked={lastPicked} />
         <h2>Circuit Breakers</h2>
         <div className="pickerGrid">
           {breakers.map((card) => (
@@ -388,15 +395,92 @@ function Setup({ config, setConfig, start }) {
         <h2>The Glitch</h2>
         <div className="pickerGrid three">
           {glitches.map((card) => (
-            <button key={card.id} className={config.glitchId === card.id ? "selected pick" : "pick"} onClick={() => setConfig({ ...config, glitchId: card.id })}>
+            <button key={card.id} className={config.glitchId === card.id ? "selected pick" : "pick"} onClick={() => {
+              setConfig({ ...config, glitchId: card.id });
+              setLastPicked({ role: "glitch", id: card.id });
+            }}>
               <img src={card.img} alt="" />
               <span>{card.name}</span>
             </button>
           ))}
         </div>
-        <button className="startButton" onClick={start}><Play size={20} /> Start Game</button>
+        <div className="setupActions">
+          <button className="guideButton" onClick={openGuide}><BookOpen size={20} /> How to Play</button>
+          <button className="startButton" onClick={start}><Play size={20} /> Start Game</button>
+        </div>
       </div>
     </section>
+  );
+}
+
+function SelectedLineup({ config, lastPicked }) {
+  const pickedBreakers = config.breakerIds.map((id) => breakers.find((card) => card.id === id));
+  const pickedGlitch = glitches.find((card) => card.id === config.glitchId);
+  return (
+    <section className="selectedLineup" aria-label="Selected characters">
+      <div className="lineupHeader">
+        <h2>Your Team</h2>
+        <span>{pickedBreakers.length} Breakers + 1 Glitch</span>
+      </div>
+      <div className="lineupCards">
+        {pickedBreakers.map((card) => (
+          <article key={card.id} className={`lineupCard breakerPick ${lastPicked.role === "breaker" && lastPicked.id === card.id ? "pickedPulse" : ""}`}>
+            <img src={card.img} alt="" />
+            <div>
+              <strong>{card.name}</strong>
+              <span>Tier {config.tiers[card.id] || 2} - {skillNames[card.skill]}</span>
+            </div>
+          </article>
+        ))}
+        <article className={`lineupCard glitchPick ${lastPicked.role === "glitch" && lastPicked.id === pickedGlitch.id ? "pickedPulse" : ""}`}>
+          <img src={pickedGlitch.img} alt="" />
+          <div>
+            <strong>{pickedGlitch.name}</strong>
+            <span>Glitch - Tier 3</span>
+          </div>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function GuideModal({ close }) {
+  return (
+    <div className="modalBackdrop">
+      <div className="modal guideModal">
+        <p className="eyebrow">How to Play</p>
+        <h2>Reboot the mainframe before The Glitch deletes the team.</h2>
+        <div className="guideGrid">
+          <section>
+            <h3>Breakers</h3>
+            <p>Move up to 3 nodes, solve math to use powers, bring all 3 generators online, then get at least one Breaker to the Exit Node.</p>
+          </section>
+          <section>
+            <h3>The Glitch</h3>
+            <p>Move up to 4 nodes, solve Tier 3 problems for powers, and freeze Breakers by landing on their node.</p>
+          </section>
+          <section>
+            <h3>Solves</h3>
+            <p>Every power or generator opens a problem. Correct answers fire the action. Wrong answers fizzle and end the turn.</p>
+          </section>
+          <section>
+            <h3>Revives</h3>
+            <p>A frozen Breaker cannot move or act. The Medic can revive from anywhere, or a teammate on the same node can solve Percentages.</p>
+          </section>
+          <section>
+            <h3>Winning</h3>
+            <p>Breakers win with 3 generators plus one escape. The Glitch wins if all Breakers freeze or the round track runs out.</p>
+          </section>
+          <section>
+            <h3>Tiers</h3>
+            <p>Each Breaker has a private Tier 1, 2, or 3. The same character power works for every tier; only the math changes.</p>
+          </section>
+        </div>
+        <div className="modalActions">
+          <button onClick={close}><BookOpen size={18} /> Got It</button>
+        </div>
+      </div>
+    </div>
   );
 }
 

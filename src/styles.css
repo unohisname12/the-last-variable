@@ -133,6 +133,98 @@ h2 {
   padding: 0;
 }
 
+.selectedLineup {
+  margin: 22px 0;
+  padding: 12px;
+  border: 1px solid rgba(110, 245, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(9, 16, 30, 0.74);
+}
+
+.lineupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.lineupHeader h2 {
+  margin: 0;
+}
+
+.lineupHeader span {
+  color: #b7c8d6;
+  font-size: 0.86rem;
+}
+
+.lineupCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.lineupCard {
+  min-height: 112px;
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(110, 245, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  transform-origin: center;
+}
+
+.lineupCard img {
+  width: 58px;
+  height: 86px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 7px;
+}
+
+.lineupCard strong,
+.lineupCard span {
+  display: block;
+}
+
+.lineupCard span {
+  margin-top: 4px;
+  color: #b7c8d6;
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+
+.breakerPick {
+  border-color: rgba(99, 244, 224, 0.34);
+}
+
+.glitchPick {
+  border-color: rgba(255, 71, 126, 0.48);
+  background: rgba(255, 71, 126, 0.1);
+}
+
+.pickedPulse {
+  animation: pick-pop 360ms ease-out;
+}
+
+@keyframes pick-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.94);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .pick {
   display: grid;
   grid-template-columns: 42px 1fr;
@@ -154,16 +246,37 @@ h2 {
   border-color: #63f4e0;
 }
 
-.startButton {
+.setupActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.startButton,
+.guideButton {
   margin-top: 24px;
   min-width: 180px;
-  background: #fd3f7c;
-  border-color: #ff8bb0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   font-weight: 800;
+}
+
+.setupActions .startButton,
+.setupActions .guideButton {
+  margin-top: 0;
+}
+
+.startButton {
+  background: #fd3f7c;
+  border-color: #ff8bb0;
+}
+
+.guideButton {
+  background: #17304d;
+  border-color: rgba(110, 245, 255, 0.4);
 }
 
 .topbar {
@@ -436,6 +549,35 @@ h2 {
   line-height: 1.2;
 }
 
+.guideModal {
+  width: min(760px, 100%);
+}
+
+.guideGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.guideGrid section {
+  min-height: 132px;
+  padding: 12px;
+  border: 1px solid rgba(110, 245, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.guideGrid h3 {
+  margin-bottom: 8px;
+}
+
+.guideGrid p {
+  color: #c5d5e2;
+  line-height: 1.4;
+  margin-bottom: 0;
+}
+
 .modal input {
   width: 100%;
   height: 48px;
@@ -494,6 +636,10 @@ h2 {
   }
 
   .pickerGrid.three {
+    grid-template-columns: 1fr;
+  }
+
+  .guideGrid {
     grid-template-columns: 1fr;
   }
 }
