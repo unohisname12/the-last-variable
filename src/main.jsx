@@ -70,7 +70,16 @@ const edges = [
   ["trap", "algGen"]
 ];
 
-const maxRounds = 12;
+const maxRounds = 10;
+
+function generatorsOnline(game) {
+  return Object.values(game.generators).filter(Boolean).length;
+}
+
+// Breakers move 3; the Glitch moves 4 and gains +1 per generator already online (rubber-band).
+function moveLimit(game, player) {
+  return player.role === "glitch" ? 4 + generatorsOnline(game) : 3;
+}
 
 function freshGame(config) {
   const players = initialPlayers(config.breakerIds, config.glitchId, config.tiers);
@@ -80,6 +89,7 @@ function freshGame(config) {
     active: 0,
     moved: 0,
     generators: { fracGen: false, algGen: false, geoGen: false },
+    genProgress: { fracGen: null, algGen: null, geoGen: null },
     barriers: [],
     decoy: null,
     extraTurnFor: null,
@@ -180,9 +190,19 @@ function App() {
   function applyChallengeSuccess(current, item) {
     const player = current.players[current.active];
     if (item.kind === "generator") {
+      const nodeId = item.payload.nodeId;
+      const holder = current.genProgress[nodeId];
+      if (!holder) {
+        return addLog(
+          { ...current, genProgress: { ...current.genProgress, [nodeId]: player.id } },
+          `${player.name} loaded half the reboot code for ${nodeNames[nodeId]}. A second Breaker must finish it.`
+        );
+      }
+      // a different Breaker completes the reboot -> generator online
       return {
         ...current,
-        generators: { ...current.generators, [item.payload.nodeId]: true }
+        generators: { ...current.generators, [nodeId]: true },
+        genProgress: { ...current.genProgress, [nodeId]: null }
       };
     }
     if (item.kind === "revive") {
@@ -198,12 +218,13 @@ function App() {
   }
 
   function applyPower(current, player, payload) {
-    const cooldown = activeCard.cooldown || 0;
+    // Tier-3 solves drop the cooldown by 1 (min 0) — the print rules' "harder math, more powers" reward.
+    const cooldown = Math.max(0, (activeCard.cooldown || 0) - (player.tier === 3 ? 1 : 0));
     const markPower = (next) => ({
       ...next,
       players: next.players.map((p) =>
         p.id === player.id
-          ? { ...p, cooldown: cooldown || p.cooldown, used: activeCard.once ? true : p.used }
+          ? { ...p, cooldown, used: activeCard.once ? true : p.used }
           : p
       )
     });
@@ -320,12 +341,17 @@ function App() {
               <p className="small">{activeCard.power}: {activeCard.effect}</p>
               <div className="meter">
                 <span>Move</span>
-                <strong>{game.moved} / {activePlayer.role === "glitch" ? 4 : 3}</strong>
+                <strong>{game.moved} / {moveLimit(game, activePlayer)}</strong>
               </div>
               <button disabled={!!winner || activePlayer.frozen || activePlayer.cooldown > 0 || activePlayer.used} onClick={() => beginChallenge("power")}><Zap size={18} /> Use Power</button>
-              {currentNode?.type === "generator" && !game.generators[currentNode.id] && activePlayer.role === "breaker" && !activePlayer.frozen && (
-                <button onClick={() => beginChallenge("generator", { nodeId: currentNode.id, skill: currentNode.skill })}><Activity size={18} /> Bring Generator Online</button>
-              )}
+              {currentNode?.type === "generator" && !game.generators[currentNode.id] && activePlayer.role === "breaker" && !activePlayer.frozen && (() => {
+                const holder = game.genProgress[currentNode.id];
+                const youHoldHalf = holder === activePlayer.id;
+                const label = !holder ? "Load Reboot Code (1 / 2)" : youHoldHalf ? "Need a 2nd Breaker (you hold ½)" : "Complete Reboot (2 / 2)";
+                return (
+                  <button disabled={youHoldHalf} onClick={() => beginChallenge("generator", { nodeId: currentNode.id, skill: currentNode.skill })}><Activity size={18} /> {label}</button>
+                );
+              })()}
               {activePlayer.role === "breaker" && !activePlayer.frozen && frozenBreakers.some((p) => p.node === activePlayer.node && p.id !== activePlayer.id) && (
                 <button onClick={() => beginChallenge("revive", { targetId: frozenBreakers.find((p) => p.node === activePlayer.node).id, skill: "percentages" })}><HeartPulse size={18} /> Revive Teammate</button>
               )}
@@ -362,7 +388,7 @@ function Setup({ config, setConfig, start, openGuide }) {
   return (
     <section className="setup">
       <div className="cover">
-        <img src="/art/img/cover.png" alt="The Last Variable cover" />
+        <img src={`${import.meta.env.BASE_URL}art/img/cover.png`} alt="The Last Variable cover" />
       </div>
       <div className="setupPanel">
         <p className="eyebrow">Middle-school math escape game</p>
@@ -453,11 +479,11 @@ function GuideModal({ close }) {
         <div className="guideGrid">
           <section>
             <h3>Breakers</h3>
-            <p>Move up to 3 nodes, solve math to use powers, bring all 3 generators online, then get at least one Breaker to the Exit Node.</p>
+            <p>Move up to 3 nodes, solve math to use powers, bring all 3 generators online — each generator needs <b>two different Breakers</b> to solve it — then get one Breaker to the Exit Node.</p>
           </section>
           <section>
             <h3>The Glitch</h3>
-            <p>Move up to 4 nodes, solve Tier 3 problems for powers, and freeze Breakers by landing on their node.</p>
+            <p>Move up to 4 nodes (+1 for every generator the Breakers bring online), solve Tier 3 problems for powers, and freeze Breakers by landing on their node.</p>
           </section>
           <section>
             <h3>Solves</h3>
@@ -473,7 +499,7 @@ function GuideModal({ close }) {
           </section>
           <section>
             <h3>Tiers</h3>
-            <p>Each Breaker has a private Tier 1, 2, or 3. The same character power works for every tier; only the math changes.</p>
+            <p>Each Breaker has a private Tier 1, 2, or 3. The same character power works for every tier; only the math changes. Solve at <b>Tier 3</b> and that power's cooldown drops by 1 — harder math, more powers.</p>
           </section>
         </div>
         <div className="modalActions">
@@ -498,7 +524,7 @@ function Board({ game, activePlayer, neighbors, movePlayer }) {
         </svg>
         {nodes.map((node) => {
           const occupants = game.players.filter((p) => p.node === node.id);
-          const canMove = neighbors.includes(node.id) && game.moved < (activePlayer.role === "glitch" ? 4 : 3);
+          const canMove = neighbors.includes(node.id) && game.moved < moveLimit(game, activePlayer);
           return (
             <button key={node.id} className={`node ${node.type || ""} ${canMove ? "reachable" : ""}`} style={{ left: `${node.x}%`, top: `${node.y}%` }} onClick={() => canMove && movePlayer(node.id)}>
               {node.type === "generator" && (game.generators[node.id] ? <Flame size={18} /> : <Gauge size={18} />)}
@@ -586,7 +612,7 @@ function availableEdges(game, nodeId) {
 }
 
 function canMoveTo(game, player, nodeId) {
-  const limit = player.role === "glitch" ? 4 : 3;
+  const limit = moveLimit(game, player);
   if (nodeId === player.node) return false;
   if (game.decoy && player.role === "glitch") {
     return game.moved < limit && nodeId === shortestPathStep(player.node, game.decoy, edges, game.barriers);

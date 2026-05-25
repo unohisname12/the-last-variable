@@ -56,15 +56,27 @@ main {
 }
 
 .cover {
+  position: relative;
   min-height: 100vh;
   overflow: hidden;
   background: #01040b;
 }
 
+.cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/the-last-variable/art/img/cover.png") center / cover no-repeat;
+  filter: blur(34px) brightness(0.5) saturate(1.1);
+  transform: scale(1.12);
+}
+
 .cover img {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
@@ -387,7 +399,7 @@ h2 {
   overflow: hidden;
   background:
     linear-gradient(rgba(3, 6, 16, 0.2), rgba(3, 6, 16, 0.76)),
-    url("/art/img/board.png") center / cover,
+    url("/the-last-variable/art/img/board.png") center / cover,
     #080f1f;
 }
 

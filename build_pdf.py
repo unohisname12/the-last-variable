@@ -17,6 +17,7 @@ IMG = os.path.join(ROOT, "art", "img")
 DIST = os.path.join(ROOT, "dist")
 os.makedirs(DIST, exist_ok=True)
 OUT = os.path.join(DIST, "TheLastVariable.pdf")
+PLAY_URL = "https://unohisname12.github.io/the-last-variable/"
 
 NAVY = colors.HexColor("#0b1224")
 NEON = colors.HexColor("#19e6c8")
@@ -146,18 +147,8 @@ def problem_card(skill, tier, prob):
 def cover_page(canvas, doc):
     canvas.saveState()
     pw, ph = letter
+    # title is baked into the image; canvas is letter-proportional -> full-bleed, no distortion
     canvas.drawImage(os.path.join(IMG, "cover.png"), 0, 0, width=pw, height=ph, preserveAspectRatio=False, mask=None)
-    canvas.setFillColor(colors.black)
-    canvas.rect(0, ph - 2.0 * inch, pw, 2.0 * inch, fill=1, stroke=0)
-    canvas.setFillColor(colors.white)
-    canvas.setFont("Helvetica-Bold", 40)
-    canvas.drawCentredString(pw / 2, ph - 1.15 * inch, "THE LAST VARIABLE")
-    canvas.setFillColor(NEON)
-    canvas.setFont("Helvetica", 15)
-    canvas.drawCentredString(pw / 2, ph - 1.55 * inch, "A Middle-School Math Escape Game")
-    canvas.setFillColor(colors.white)
-    canvas.setFont("Helvetica-Oblique", 11)
-    canvas.drawCentredString(pw / 2, 0.5 * inch, "Print · Cut · Play   |   7th Grade (7.NS · 7.EE · 7.RP · 7.G)   |   Differentiated for inclusion classrooms")
     canvas.restoreState()
 
 def footer(canvas, doc):
@@ -190,6 +181,17 @@ def build():
 
     # rules
     S += [Paragraph("How to Play", H1)]
+    play = Table([[Paragraph(
+        f'<b>▶ PLAY THE FREE DIGITAL VERSION</b> — same game, solved on any device (Chromebook, tablet, phone):<br/>'
+        f'<a href="{PLAY_URL}"><b>{PLAY_URL.replace("https://", "")}</b></a>',
+        ParagraphStyle("play", parent=BODY, textColor=NAVY, alignment=TA_CENTER, leading=15))]],
+        colWidths=[doc.width])
+    play.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), NEON),
+        ("BOX", (0, 0), (-1, -1), 1.2, NAVY),
+        ("TOPPADDING", (0, 0), (-1, -1), 8), ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+    S += [play, Spacer(1, 12)]
     S += [Paragraph("The school’s mainframe is collapsing. A rogue program — <b>The Glitch</b> — is deleting everything inside it, one variable at a time. A team of <b>Circuit Breakers</b> is trapped. Bring three generators back online and reach the exit before the Glitch deletes you all — before one of you becomes the last variable.", BODY)]
     S += [Paragraph("Players & Roles", H2),
           Paragraph("4–5 players. One is <b>The Glitch</b> (the hunter, solo). The rest are <b>Circuit Breakers</b> (the team). Deal the Glitch role with the rotation cards — it passes every game, and everyone plays it before anyone repeats.", BODY)]

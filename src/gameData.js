@@ -15,7 +15,7 @@ export const breakers = [
     effect: "Bring one offline generator online from anywhere in this digital build.",
     skill: "algebra",
     cooldown: 2,
-    img: "/art/img/hacker.png"
+    img: import.meta.env.BASE_URL + "art/img/hacker.png"
   },
   {
     id: "medic",
@@ -24,7 +24,7 @@ export const breakers = [
     effect: "Revive one frozen teammate anywhere on the board.",
     skill: "percentages",
     cooldown: 1,
-    img: "/art/img/medic.png"
+    img: import.meta.env.BASE_URL + "art/img/medic.png"
   },
   {
     id: "scout",
@@ -33,7 +33,7 @@ export const breakers = [
     effect: "Reveal The Glitch's location in the system log.",
     skill: "geometry",
     cooldown: 1,
-    img: "/art/img/scout.png"
+    img: import.meta.env.BASE_URL + "art/img/scout.png"
   },
   {
     id: "engineer",
@@ -42,7 +42,7 @@ export const breakers = [
     effect: "Jam the first adjacent corridor for 2 rounds.",
     skill: "fractions",
     cooldown: 2,
-    img: "/art/img/engineer.png"
+    img: import.meta.env.BASE_URL + "art/img/engineer.png"
   },
   {
     id: "runner",
@@ -51,7 +51,7 @@ export const breakers = [
     effect: "Gain 3 extra movement this turn.",
     skill: "mixed",
     cooldown: 1,
-    img: "/art/img/runner.png"
+    img: import.meta.env.BASE_URL + "art/img/runner.png"
   },
   {
     id: "decoder",
@@ -60,7 +60,7 @@ export const breakers = [
     effect: "Spend your once-per-game table lifeline.",
     skill: "any",
     once: true,
-    img: "/art/img/decoder.png"
+    img: import.meta.env.BASE_URL + "art/img/decoder.png"
   },
   {
     id: "guardian",
@@ -69,7 +69,7 @@ export const breakers = [
     effect: "Shield yourself from the next freeze.",
     skill: "fractions",
     cooldown: 2,
-    img: "/art/img/guardian.png"
+    img: import.meta.env.BASE_URL + "art/img/guardian.png"
   },
   {
     id: "trickster",
@@ -78,7 +78,7 @@ export const breakers = [
     effect: "Drop a decoy signal on the Trap Node.",
     skill: "geometry",
     cooldown: 2,
-    img: "/art/img/trickster.png"
+    img: import.meta.env.BASE_URL + "art/img/trickster.png"
   }
 ];
 
@@ -90,7 +90,7 @@ export const glitches = [
     effect: "Seal the final exit corridor for 2 rounds.",
     skill: "algebra",
     cooldown: 2,
-    img: "/art/img/corruptor.png"
+    img: import.meta.env.BASE_URL + "art/img/corruptor.png"
   },
   {
     id: "stalker",
@@ -99,7 +99,7 @@ export const glitches = [
     effect: "Step toward the nearest unfrozen Breaker.",
     skill: "geometry",
     cooldown: 1,
-    img: "/art/img/stalker.png"
+    img: import.meta.env.BASE_URL + "art/img/stalker.png"
   },
   {
     id: "overclock",
@@ -108,7 +108,7 @@ export const glitches = [
     effect: "Prepare an extra turn surge.",
     skill: "mixed",
     cooldown: 2,
-    img: "/art/img/overclock.png"
+    img: import.meta.env.BASE_URL + "art/img/overclock.png"
   }
 ];
 
