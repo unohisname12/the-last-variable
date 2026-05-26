@@ -4,3 +4,7 @@ dist/assets
 web-dist
 .DS_Store
 *.log
+
+# Convex
+convex/_generated
+.env.local
