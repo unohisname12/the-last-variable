@@ -43,7 +43,7 @@ describe("teams", () => {
     ).rejects.toThrow(/captain/i);
     // captain locks
     await t.mutation(api.teams.lockTeam, { sessionToken: cap.sessionToken, teamId: cap.teamId });
-    expect((await t.query(api.teams.teamView, { sessionToken: m2.sessionToken })).locked).toBe(true);
+    expect((await t.query(api.teams.teamView, { sessionToken: m2.sessionToken }))!.locked).toBe(true);
   });
 
   it("character uniqueness within a team", async () => {
