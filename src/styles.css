@@ -655,3 +655,76 @@ h2 {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- Live (classroom) lobby ---- */
+.modePick,
+.liveShell,
+.liveRolePick,
+.teacherAuth,
+.dashboard,
+.kidJoin,
+.kidTeam {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px clamp(20px, 5vw, 56px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modeButtons,
+.liveRolePick {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 420px;
+}
+.classCode {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 6px;
+  color: #63f4e0;
+  font-size: 2.2rem;
+}
+.teamGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+.teamCard {
+  border: 1px solid rgba(110, 245, 255, 0.22);
+  border-radius: 10px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.teamCard.locked {
+  border-color: #63f4e0;
+  background: rgba(99, 244, 224, 0.08);
+}
+.teamCard ul,
+.memberList {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  color: #b7c8d6;
+}
+.charPick,
+.teamList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.kidJoin input {
+  font-size: 1.1rem;
+  padding: 12px;
+}
+.kidJoin input:first-of-type {
+  text-transform: uppercase;
+  letter-spacing: 4px;
+}
+.backBtn {
+  align-self: flex-start;
+}
+.err {
+  color: #ff7b9c;
+  font-size: 0.9rem;
+}

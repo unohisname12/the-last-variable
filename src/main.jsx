@@ -17,6 +17,7 @@ import {
   Zap
 } from "lucide-react";
 import "./styles.css";
+import { LiveApp } from "./modes/live/LiveApp.jsx";
 import { breakers, glitches, problemDecks, skillNames } from "./gameData.js";
 import { checkAnswer, drawProblem, initialPlayers, shortestPathDistance, shortestPathStep } from "./rules.js";
 
@@ -637,4 +638,20 @@ function getWinner(game) {
   return "";
 }
 
-createRoot(document.getElementById("root")).render(<App />);
+function Root() {
+  const [mode, setMode] = useState("pick"); // "pick" | "solo" | "live"
+  if (mode === "live") return <LiveApp onBack={() => setMode("pick")} />;
+  if (mode === "solo") return <App />;
+  return (
+    <main className="modePick">
+      <p className="eyebrow">Middle-school math escape game</p>
+      <h1>The Last Variable</h1>
+      <div className="modeButtons">
+        <button className="startButton" onClick={() => setMode("live")}>Classroom — online, multi-device</button>
+        <button className="startButton" onClick={() => setMode("solo")}>Single device — solo / pass-and-play</button>
+      </div>
+    </main>
+  );
+}
+
+createRoot(document.getElementById("root")).render(<Root />);
