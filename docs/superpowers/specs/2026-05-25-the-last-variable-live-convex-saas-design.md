@@ -118,6 +118,16 @@ Convex Cloud is usage-billed (function calls, bandwidth, storage). The realistic
 - Class/team/game/player docs are **TTL-cleaned** after session end/idle; no cross-session child data.
 - Publish a short **data-handling note** (what's collected, retention) in the TpT listing and an in-app footer.
 
+## Small-team self-balancing (implemented in P2 gameplay)
+
+Teams lock at **any size** (1+). The lockstep engine scales the game to the locked team size so a solo or 2-kid team is winnable and a full team is still tense — derived from the final roster at lock, all tuning knobs (not hardcoded):
+
+- **Generator solve count = `min(2, breakerCount)`.** Solo/2-player teams use single-solve generators (the two-Breaker split-info gate is impossible below 2 players); 3+ keep the two-Breaker co-op gate.
+- **Generators required to win** can drop for tiny teams (e.g., 2 for a solo run).
+- **Glitch pressure scales to breaker count** — base move/aggression eases for small teams, ramps for large (generalizes the rubber-band + 5-player "+1 move" lever to `f(breakerCount)`).
+- **Round track** scales mildly with size (fewer hands → a bit more time).
+- **AI Glitch by default** when no kid takes the Glitch seat, so a 1–2 kid team still has an opponent.
+
 ## Phasing (each independently shippable)
 
 - **P0 — DONE** (in `feat/live-phase0` worktree): pure `src/engine/` + client-only Solo. *Reused as-is.*
