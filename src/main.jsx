@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import "./styles.css";
 import { LiveApp } from "./modes/live/LiveApp.jsx";
+import { LiveProviders } from "./modes/live/ConvexClient.jsx";
 import { breakers, glitches, problemDecks, skillNames } from "./gameData.js";
 import { checkAnswer, drawProblem, initialPlayers, shortestPathDistance, shortestPathStep } from "./rules.js";
 
@@ -654,4 +655,10 @@ function Root() {
   );
 }
 
-createRoot(document.getElementById("root")).render(<Root />);
+// ConvexAuthProvider must wrap the whole app so it processes the OAuth `?code=`
+// redirect on initial load (the redirect lands on the root URL, before any mode is picked).
+createRoot(document.getElementById("root")).render(
+  <LiveProviders>
+    <Root />
+  </LiveProviders>
+);
