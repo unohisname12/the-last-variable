@@ -8,3 +8,8 @@ web-dist
 # Convex
 convex/_generated
 .env.local
+
+# Convex AI-skill scaffolding (auto-generated)
+.agents/
+AGENTS.md
+skills-lock.json
