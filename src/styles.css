@@ -728,3 +728,182 @@ h2 {
   color: #ff7b9c;
   font-size: 0.9rem;
 }
+
+/* ---- Live lobby: character art + split teams ---- */
+.liveTeam,
+.kidJoin,
+.teacherStart {
+  max-width: 920px;
+  margin: 0 auto;
+  width: 100%;
+}
+.liveTeamHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.lockPill {
+  font-size: 0.85rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(110, 245, 255, 0.3);
+  color: #b7c8d6;
+}
+.lockPill.on {
+  border-color: #63f4e0;
+  color: #63f4e0;
+  background: rgba(99, 244, 224, 0.1);
+}
+
+/* member lineup cards reuse .lineupCard; lay them in a wrapping row */
+.lineupCards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 6px 0 14px;
+}
+.lineupCard {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 8px 8px;
+  border: 1px solid rgba(110, 245, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  min-width: 180px;
+}
+.lineupCard img {
+  width: 58px;
+  height: 80px;
+  object-fit: contain;
+}
+.lineupCard__blank {
+  width: 58px;
+  height: 80px;
+  border-radius: 7px;
+  background: repeating-linear-gradient(45deg, rgba(255,255,255,.05), rgba(255,255,255,.05) 6px, transparent 6px, transparent 12px);
+}
+.lineupCard.glitchPick {
+  border-color: rgba(255, 71, 126, 0.45);
+  background: rgba(255, 71, 126, 0.08);
+}
+
+/* character picker cards show full art */
+.pickerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 10px;
+  margin: 8px 0 16px;
+}
+.pickerGrid.three {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+.pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border: 1px solid rgba(110, 245, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  text-align: center;
+}
+.pick img {
+  width: 100%;
+  max-width: 96px;
+  height: 110px;
+  object-fit: contain;
+}
+.pick span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.pick span small {
+  display: block;
+  font-weight: 400;
+  color: #8aa0b4;
+  font-size: 0.72rem;
+}
+.pick.selected {
+  border-color: #63f4e0;
+  background: #14323a;
+}
+.pick:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.pick.glitchPick {
+  border-color: rgba(255, 71, 126, 0.4);
+}
+
+/* split team panels (dashboard + join list) */
+.teamGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.teamPanel {
+  border: 1px solid rgba(110, 245, 255, 0.22);
+  border-radius: 14px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.035);
+}
+.teamPanel.locked {
+  border-color: #63f4e0;
+  background: rgba(99, 244, 224, 0.07);
+}
+.teamPanel h3 {
+  margin: 0 0 10px;
+}
+.joinGrid .teamPanel {
+  text-align: left;
+  cursor: pointer;
+}
+.teamPanel.newTeam {
+  border-style: dashed;
+}
+.teamPanel:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.lockBtn {
+  margin-top: 4px;
+}
+.codeInput {
+  text-transform: uppercase;
+  letter-spacing: 8px;
+  font-size: 1.6rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  text-align: center;
+}
+.dashHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.dashStats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.classCode {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 8px;
+  color: #63f4e0;
+  font-size: 2.6rem;
+}
+.waiting {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 30px;
+}
