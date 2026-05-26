@@ -27,23 +27,26 @@ describe("teams", () => {
     ).rejects.toThrow();
   });
 
-  it("only the captain can lock, and lock needs >= 3 players", async () => {
+  it("only the captain can lock; any team size can start", async () => {
     const t = convexTest(schema);
     const { code } = await liveClass(t);
     const cap = await t.mutation(api.teams.joinClass, { code, handle: "Cap", teamName: "Blue" });
     const m1 = await t.mutation(api.teams.joinTeam, { code, teamId: cap.teamId, handle: "Mate1" });
-    // only 2 players -> lock should fail
-    await expect(
-      t.mutation(api.teams.lockTeam, { sessionToken: cap.sessionToken, teamId: cap.teamId }),
-    ).rejects.toThrow(/3 players/i);
-    const m2 = await t.mutation(api.teams.joinTeam, { code, teamId: cap.teamId, handle: "Mate2" });
     // non-captain cannot lock
     await expect(
       t.mutation(api.teams.lockTeam, { sessionToken: m1.sessionToken, teamId: cap.teamId }),
     ).rejects.toThrow(/captain/i);
-    // captain locks
+    // captain locks a 2-player team (small teams allowed)
     await t.mutation(api.teams.lockTeam, { sessionToken: cap.sessionToken, teamId: cap.teamId });
-    expect((await t.query(api.teams.teamView, { sessionToken: m2.sessionToken }))!.locked).toBe(true);
+    expect((await t.query(api.teams.teamView, { sessionToken: m1.sessionToken }))!.locked).toBe(true);
+  });
+
+  it("a solo (1-player) team can lock and start", async () => {
+    const t = convexTest(schema);
+    const { code } = await liveClass(t);
+    const cap = await t.mutation(api.teams.joinClass, { code, handle: "Solo", teamName: "Lone" });
+    await t.mutation(api.teams.lockTeam, { sessionToken: cap.sessionToken, teamId: cap.teamId });
+    expect((await t.query(api.teams.teamView, { sessionToken: cap.sessionToken }))!.locked).toBe(true);
   });
 
   it("character uniqueness within a team", async () => {

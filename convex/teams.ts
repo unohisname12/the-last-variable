@@ -107,7 +107,8 @@ export const lockTeam = mutation({
       .query("players")
       .withIndex("by_team", (q) => q.eq("teamId", teamId))
       .collect();
-    if (members.length < 3) throw new Error("Need at least 3 players");
+    if (members.length < 1) throw new Error("Team is empty");
+    // Any size plays — the game scales objectives/difficulty to team size (see balance below).
     await ctx.db.patch(teamId, { locked: true });
     return { ok: true };
   },

@@ -44,7 +44,6 @@ export function KidJoin() {
   // ---- in a team ----
   if (view) {
     const taken = new Set(view.members.map((m) => m.characterId).filter(Boolean));
-    const need = Math.max(0, 3 - view.members.length);
     return (
       <section className="liveTeam">
         <div className="liveTeamHead">
@@ -85,9 +84,9 @@ export function KidJoin() {
               </>
             )}
             {view.youAreCaptain && (
-              <button className="startButton lockBtn" disabled={need > 0}
+              <button className="startButton lockBtn"
                 onClick={() => run(() => lock({ sessionToken: token, teamId: view.teamId }))}>
-                {need > 0 ? `Lock Team — need ${need} more` : "Lock Team"}
+                Lock Team &amp; Start ({view.members.length})
               </button>
             )}
             {!view.youAreCaptain && <p className="small">Waiting for the captain to lock the team…</p>}
