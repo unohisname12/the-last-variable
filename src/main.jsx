@@ -143,22 +143,9 @@ function App() {
       const players = current.players.map((p, index) =>
         index === current.active ? { ...p, node: nodeId } : p
       );
-      let next = { ...current, players, moved: current.moved + 1 };
-      if (player.role === "glitch") {
-        const victims = players.filter((p) => p.role === "breaker" && p.node === nodeId && !p.frozen);
-        if (victims.length) {
-          next.players = players.map((p) =>
-            p.role === "breaker" && p.node === nodeId
-              ? p.shielded ? { ...p, shielded: false } : { ...p, frozen: true }
-              : p
-          );
-          const frozen = victims.filter((v) => !v.shielded);
-          const blocked = victims.filter((v) => v.shielded);
-          if (frozen.length) next = addLog(next, `The Glitch froze ${frozen.map((v) => v.name).join(", ")}.`);
-          if (blocked.length) next = addLog(next, `${blocked.map((v) => v.name).join(", ")} blocked the freeze.`);
-        }
-      }
-      return next;
+      // Moving onto a Breaker no longer auto-freezes — the Glitch must solve to freeze
+      // (the "Freeze (solve)" action). Keeps both sides math-gated.
+      return { ...current, players, moved: current.moved + 1 };
     });
   }
 
@@ -214,8 +201,25 @@ function App() {
     if (item.kind === "revive") {
       return {
         ...current,
-        players: current.players.map((p) => (p.id === item.payload.targetId ? { ...p, frozen: false } : p))
+        players: current.players.map((p) => (p.id === item.payload.targetId ? { ...p, frozen: false, frozenAtRound: null } : p))
       };
+    }
+    if (item.kind === "freeze") {
+      const nodeId = player.node;
+      const victims = current.players.filter((pl) => pl.role === "breaker" && pl.node === nodeId && !pl.frozen);
+      if (!victims.length) return current;
+      let next = {
+        ...current,
+        players: current.players.map((pl) =>
+          pl.role === "breaker" && pl.node === nodeId && !pl.frozen
+            ? (pl.shielded ? { ...pl, shielded: false } : { ...pl, frozen: true, frozenAtRound: current.round })
+            : pl)
+      };
+      const froze = victims.filter((v) => !v.shielded).map((v) => v.name);
+      const blocked = victims.filter((v) => v.shielded).map((v) => v.name);
+      if (froze.length) next = addLog(next, `The Glitch froze ${froze.join(", ")}.`);
+      if (blocked.length) next = addLog(next, `${blocked.join(", ")} blocked the freeze.`);
+      return next;
     }
     if (item.kind === "power") {
       return applyPower(current, player, item.payload);
@@ -290,7 +294,16 @@ function App() {
       return addLog({ ...current, moved: 0, extraTurnFor: null }, `${active.name} surges into an extra turn.`);
     }
     const players = atEnd
-      ? current.players.map((p) => ({ ...p, cooldown: Math.max(0, p.cooldown - 1), shielded: false }))
+      ? current.players.map((p) => {
+          const thaw = p.frozen && p.frozenAtRound != null && p.frozenAtRound < current.round;
+          return {
+            ...p,
+            cooldown: Math.max(0, p.cooldown - 1),
+            shielded: false,
+            frozen: thaw ? false : p.frozen,
+            frozenAtRound: thaw ? null : p.frozenAtRound
+          };
+        })
       : current.players;
     return {
       ...current,
@@ -366,6 +379,9 @@ function App() {
               })()}
               {activePlayer.role === "breaker" && !activePlayer.frozen && frozenBreakers.some((p) => p.node === activePlayer.node && p.id !== activePlayer.id) && (
                 <button onClick={() => beginChallenge("revive", { targetId: frozenBreakers.find((p) => p.node === activePlayer.node).id, skill: "percentages" })}><HeartPulse size={18} /> Revive Teammate</button>
+              )}
+              {activePlayer.role === "glitch" && game.players.some((pl) => pl.role === "breaker" && pl.node === activePlayer.node && !pl.frozen) && (
+                <button onClick={() => beginChallenge("freeze", { skill: activeCard.skill })}><Lock size={18} /> Freeze (solve)</button>
               )}
               <button onClick={finishTurn}><ArrowRight size={18} /> End Turn</button>
               <ObjectivePanel game={game} winner={winner} />
@@ -642,9 +658,8 @@ function nearestBreaker(game, from) {
 function getWinner(game) {
   const allGenerators = Object.values(game.generators).every(Boolean);
   const escaped = game.players.some((p) => p.role === "breaker" && p.node === "exit");
-  const allFrozen = game.players.filter((p) => p.role === "breaker").every((p) => p.frozen);
   if (allGenerators && escaped) return "Circuit Breakers win";
-  if (allFrozen) return "The Glitch wins";
+  // Freeze costs turns but auto-thaws — no instant all-frozen loss. The Glitch wins on the clock.
   if (game.round > maxRounds) return "The Glitch wins";
   return "";
 }
