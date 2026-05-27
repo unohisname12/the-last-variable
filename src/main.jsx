@@ -91,7 +91,7 @@ function freshGame(config) {
     active: 0,
     moved: 0,
     generators: { fracGen: false, algGen: false, geoGen: false },
-    genProgress: { fracGen: null, algGen: null, geoGen: null },
+    genProgress: { fracGen: [], algGen: [], geoGen: [] }, // distinct Breaker ids who've solved at each gen
     barriers: [],
     decoy: null,
     extraTurnFor: null,
@@ -193,19 +193,23 @@ function App() {
     const player = current.players[current.active];
     if (item.kind === "generator") {
       const nodeId = item.payload.nodeId;
-      const holder = current.genProgress[nodeId];
-      if (!holder) {
-        return addLog(
-          { ...current, genProgress: { ...current.genProgress, [nodeId]: player.id } },
-          `${player.name} loaded half the reboot code for ${nodeNames[nodeId]}. A second Breaker must finish it.`
-        );
+      // Generators scale to team size: 1 Breaker -> a single solve finishes it;
+      // 2+ Breakers -> two DIFFERENT Breakers must each solve (the co-op moat).
+      const breakerCount = current.players.filter((p) => p.role === "breaker").length;
+      const required = Math.min(2, breakerCount);
+      const prior = current.genProgress[nodeId] || [];
+      const solvers = prior.includes(player.id) ? prior : [...prior, player.id];
+      if (solvers.length >= required) {
+        return {
+          ...current,
+          generators: { ...current.generators, [nodeId]: true },
+          genProgress: { ...current.genProgress, [nodeId]: solvers }
+        };
       }
-      // a different Breaker completes the reboot -> generator online
-      return {
-        ...current,
-        generators: { ...current.generators, [nodeId]: true },
-        genProgress: { ...current.genProgress, [nodeId]: null }
-      };
+      return addLog(
+        { ...current, genProgress: { ...current.genProgress, [nodeId]: solvers } },
+        `${player.name} loaded part of the reboot code for ${nodeNames[nodeId]}. ${required - solvers.length} more Breaker needed.`
+      );
     }
     if (item.kind === "revive") {
       return {
@@ -347,11 +351,17 @@ function App() {
               </div>
               <button disabled={!!winner || activePlayer.frozen || activePlayer.cooldown > 0 || activePlayer.used} onClick={() => beginChallenge("power")}><Zap size={18} /> Use Power</button>
               {currentNode?.type === "generator" && !game.generators[currentNode.id] && activePlayer.role === "breaker" && !activePlayer.frozen && (() => {
-                const holder = game.genProgress[currentNode.id];
-                const youHoldHalf = holder === activePlayer.id;
-                const label = !holder ? "Load Reboot Code (1 / 2)" : youHoldHalf ? "Need a 2nd Breaker (you hold ½)" : "Complete Reboot (2 / 2)";
+                const breakerCount = game.players.filter((p) => p.role === "breaker").length;
+                const required = Math.min(2, breakerCount);
+                const solvers = game.genProgress[currentNode.id] || [];
+                const youSolved = solvers.includes(activePlayer.id);
+                const label = required <= 1
+                  ? "Bring Generator Online"
+                  : youSolved
+                    ? `Need ${required - solvers.length} more Breaker`
+                    : `${solvers.length === 0 ? "Load Reboot Code" : "Complete Reboot"} (${solvers.length + 1} / ${required})`;
                 return (
-                  <button disabled={youHoldHalf} onClick={() => beginChallenge("generator", { nodeId: currentNode.id, skill: currentNode.skill })}><Activity size={18} /> {label}</button>
+                  <button disabled={youSolved} onClick={() => beginChallenge("generator", { nodeId: currentNode.id, skill: currentNode.skill })}><Activity size={18} /> {label}</button>
                 );
               })()}
               {activePlayer.role === "breaker" && !activePlayer.frozen && frozenBreakers.some((p) => p.node === activePlayer.node && p.id !== activePlayer.id) && (
@@ -379,7 +389,7 @@ function Setup({ config, setConfig, start, openGuide }) {
     const ids = config.breakerIds.includes(id)
       ? config.breakerIds.filter((item) => item !== id)
       : [...config.breakerIds, id].slice(0, 4);
-    if (ids.length >= 3) {
+    if (ids.length >= 1) {
       setConfig({ ...config, breakerIds: ids, tiers: { ...config.tiers, [id]: config.tiers[id] || 2 } });
       setLastPicked({ role: "breaker", id });
     }
@@ -395,7 +405,7 @@ function Setup({ config, setConfig, start, openGuide }) {
       <div className="setupPanel">
         <p className="eyebrow">Middle-school math escape game</p>
         <h1>The Last Variable</h1>
-        <p>Pick 3-4 Circuit Breakers and one Glitch. Every power is fueled by differentiated math.</p>
+        <p>Pick 1-4 Circuit Breakers and one Glitch. Every power is fueled by differentiated math. Small teams scale: a solo Breaker lights generators alone; 2+ need two to co-op each one.</p>
         <SelectedLineup config={config} lastPicked={lastPicked} />
         <h2>Circuit Breakers</h2>
         <div className="pickerGrid">
